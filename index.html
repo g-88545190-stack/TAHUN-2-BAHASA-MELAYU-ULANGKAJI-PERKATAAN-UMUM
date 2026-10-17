@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>南瓜大丰收 - 二年级 Bahasa Melayu 词汇复习</title>
+    <style>
+        :root {
+            --primary-color: #ff7a00;
+            --secondary-color: #ffae00;
+            --bg-color: #8bc34a;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: #5d4037;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* 游戏容器设置 */
+        #game-container {
+            background: linear-gradient(to bottom, #87CEEB 0%, #e0f7fa 50%, #8bc34a 50%, #689f38 100%);
+            border: 8px solid #3e2723;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        /* 电脑模式 */
+        .desktop-mode {
+            width: 900px;
+            height: 650px;
+        }
+
+        /* 手机模式 */
+        .mobile-mode {
+            width: 360px;
+            height: 640px;
+        }
+
+        /* 模式选择遮罩 */
+        #mode-select {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #mode-select h1 {
+            font-size: 26px;
+            color: #ffae00;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px #000;
+        }
+
+        #mode-select p {
+            font-size: 14px;
+            margin-bottom: 25px;
+            color: #ddd;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #cc6200;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .mode-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #cc6200;
+        }
+
+        /* 顶栏得分与进度 */
+        #top-bar {
+            width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.85);
+            border-bottom: 3px solid #ff7a00;
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            z-index: 10;
+        }
+
+        .score-box { color: #d84315; }
+        .progress-box { color: #2e7d32; }
+
+        /* 南瓜农场区域 */
+        #farm-grid {
+            flex: 1;
+            width: 100%;
+            padding: 15px;
+            display: grid;
+            gap: 12px;
+            overflow-y: auto;
+            align-content: start;
+        }
+
+        .desktop-mode #farm-grid {
+            grid-template-columns: repeat(8, 1fr);
+        }
+
+        .mobile-mode #farm-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* 南瓜组件 */
+        .pumpkin-item {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+            border: 2px dashed rgba(255,255,255,0.5);
+        }
+
+        .pumpkin-item:hover {
+            transform: scale(1.05);
+        }
+
+        .pumpkin-img {
+            font-size: 32px;
+            filter: drop-shadow(2px 4px 2px rgba(0,0,0,0.3));
+        }
+
+        .pumpkin-num {
+            font-size: 11px;
+            background: #333;
+            color: white;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-top: 2px;
+        }
+
+        .harvested {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: transparent;
+            border: none;
+        }
+
+        .harvested .pumpkin-img {
+            filter: grayscale(100%);
+        }
+
+        /* 答题弹窗 Modal */
+        #quiz-modal {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            padding: 15px;
+        }
+
+        .quiz-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 4px solid var(--primary-color);
+            text-align: center;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .word-title {
+            font-size: 24px;
+            color: #d84315;
+            margin-bottom: 5px;
+        }
+
+        .word-category {
+            font-size: 12px;
+            color: #757575;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-btn {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #ffe0b2;
+            border-color: #ff9800;
+        }
+
+        /* 答题反馈区域 */
+        #feedback-area {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .feedback-correct {
+            background: #e8f5e9;
+            border: 1px solid #81c784;
+            color: #2e7d32;
+        }
+
+        .feedback-wrong {
+            background: #ffebee;
+            border: 1px solid #e57373;
+            color: #c62828;
+        }
+
+        .example-sentence {
+            margin-top: 5px;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .sentence-zh {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .next-btn {
+            margin-top: 15px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: none;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        /* 完成结算遮罩 */
+        #result-modal {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 90;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #result-modal h2 {
+            font-size: 32px;
+            color: #ffae00;
+            margin-bottom: 10px;
+        }
+
+        #result-modal p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container" class="desktop-mode">
+        
+        <!-- 模式选择界面 -->
+        <div id="mode-select">
+            <h1>🎃 南瓜大丰收 🎃</h1>
+            <p>Bahasa Melayu Tahun 2 复习游戏</p>
+            <p style="font-size: 12px; margin-bottom: 20px;">点击南瓜，回答词汇问题，完成大丰收吧！</p>
+            <div class="btn-group">
+                <button class="mode-btn" onclick="selectMode('mobile')">📱 手机模式</button>
+                <button class="mode-btn" onclick="selectMode('desktop')">💻 电脑模式</button>
+            </div>
+        </div>
+
+        <!-- 顶栏信息 -->
+        <div id="top-bar">
+            <div class="score-box">已收割: <span id="score">0</span> / 32 🎃</div>
+            <div class="progress-box">单元：全册综合复习</div>
+        </div>
+
+        <!-- 南瓜农场网格 -->
+        <div id="farm-grid"></div>
+
+        <!-- 答题弹窗 Modal -->
+        <div id="quiz-modal">
+            <div class="quiz-card">
+                <div id="word-title" class="word-title">Sepupu</div>
+                <div id="word-category" class="word-category">Keluarga & Jiran</div>
+                <div id="question-text" class="question-text">这个词的意思是什么？</div>
+                
+                <div id="options-list" class="options-list"></div>
+
+                <div id="feedback-area">
+                    <div id="feedback-result" style="font-weight:bold;"></div>
+                    <div class="example-sentence">
+                        <strong>📌 例句：</strong><span id="sentence-ms"></span><br>
+                        <span id="sentence-zh" class="sentence-zh"></span>
+                    </div>
+                </div>
+
+                <button id="next-btn" class="next-btn" onclick="closeQuiz()">继续收割下一个南瓜 🎃</button>
+            </div>
+        </div>
+
+        <!-- 结算弹窗 Modal -->
+        <div id="result-modal">
+            <h2>🎉 恭喜你！全盘丰收！</h2>
+            <p>你成功收割了所有的南瓜！国文词汇棒棒哒！</p>
+            <button class="mode-btn" onclick="restartGame()">再玩一次 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        // 32道题目数据库，完全涵盖5大单元所有生词与例句
+        const questionsData = [
+            // 1. Keluarga & Jiran
+            { word: "Sepupu", category: "Keluarga & Jiran", correct: "堂/表兄弟姐妹", options: ["堂/表兄弟姐妹", "邻居", "爷爷", "叔叔"], sentence: "Anak sepupu saya sangat comel.", sentenceZh: "我的表亲非常可爱。" },
+            { word: "Jiran", category: "Keluarga & Jiran", correct: "邻居", options: ["邻居", "朋友", "老师", "学生"], sentence: "Jiran tetangga kami sangat mesra.", sentenceZh: "我们的邻居们非常友善。" },
+            { word: "Membantu", category: "Keluarga & Jiran", correct: "帮忙 / 协助", options: ["帮忙 / 协助", "玩耍", "睡觉", "跑步"], sentence: "Ahmad membantu ibu di dapur.", sentenceZh: "阿末在厨房帮妈妈。" },
+            { word: "Bekerjasama", category: "Keluarga & Jiran", correct: "合作", options: ["合作", "争吵", "休息", "买东西"], sentence: "Kami bekerjasama membersihkan halaman rumah.", sentenceZh: "我们合作清理庭院。" },
+            { word: "Ziarah / Melawat", category: "Keluarga & Jiran", correct: "拜访 / 探望", options: ["拜访 / 探望", "打扫", "写字", "唱歌"], sentence: "Kami melawat datuk di kampung.", sentenceZh: "我们去乡下探望爷爷。" },
+            { word: "Berbual-bual", category: "Keluarga & Jiran", correct: "聊天", options: ["聊天", "跑步", "跳舞", "阅读"], sentence: "Ayah dan jiran berbual-bual di pangkin.", sentenceZh: "爸爸和邻居在矮凳上聊天。" },
+
+            // 2. Sekolah & Aktiviti
+            { word: "Kantin", category: "Sekolah & Aktiviti", correct: "食堂", options: ["食堂", "礼堂", "教室", "操场"], sentence: "Murid-murid membeli makanan di kantin.", sentenceZh: "同学们在食堂买食物。" },
+            { word: "Perpustakaan", category: "Sekolah & Aktiviti", correct: "图书馆", options: ["图书馆", "办公室", "草场", "卫生间"], sentence: "Siti membaca buku di perpustakaan.", sentenceZh: "西蒂在图书馆读书。" },
+            { word: "Padang", category: "Sekolah & Aktiviti", correct: "草场 / 操场", options: ["草场 / 操场", "池塘", "花园", "教室"], sentence: "Budak-budak bermain bola di padang.", sentenceZh: "孩子们在草场踢球。" },
+            { word: "Beratur", category: "Sekolah & Aktiviti", correct: "排队", options: ["排队", "奔跑", "谈天", "坐下"], sentence: "Kami beratur semasa membeli makanan.", sentenceZh: "我们在买食物时排队。" },
+            { word: "Meminjam", category: "Sekolah & Aktiviti", correct: "借", options: ["借", "还", "买", "卖"], sentence: "Ali meminjam buku cerita dari perpustakaan.", sentenceZh: "阿里从图书馆借故事书。" },
+            { word: "Memulangkan", category: "Sekolah & Aktiviti", correct: "归还", options: ["归还", "借用", "撕毁", "丢失"], sentence: "Saya memulangkan buku mengikut masa.", sentenceZh: "我按时归还书籍。" },
+            { word: "Tugas", category: "Sekolah & Aktiviti", correct: "值日 / 任务", options: ["值日 / 任务", "游戏", "休息", "礼物"], sentence: "Kami menjalankan tugas membersihkan kelas.", sentenceZh: "我们执行清理教室的任务。" },
+
+            // 3. Kebersihan & Kesihatan
+            { word: "Cergas", category: "Kebersihan & Kesihatan", correct: "有活力的 / 强壮的", options: ["有活力的 / 强壮的", "生病的", "疲倦的", "伤心的"], sentence: "Badan sihat, otak cergas.", sentenceZh: "身体健康，头脑灵活。" },
+            { word: "Bersih", category: "Kebersihan & Kesihatan", correct: "干净", options: ["干净", "脏乱", "拥挤", "危险"], sentence: "Kita mesti tinggal di kawasan yang bersih.", sentenceZh: "我们必须住在干净的地方。" },
+            { word: "Menjaga", category: "Kebersihan & Kesihatan", correct: "照顾 / 遵守", options: ["照顾 / 遵守", "破坏", "无视", "丢弃"], sentence: "Kita perlu menjaga kebersihan diri.", sentenceZh: "我们需要照顾个人卫生。" },
+            { word: "Sabun", category: "Kebersihan & Kesihatan", correct: "肥皂", options: ["肥皂", "牙刷", "水龙头", "毛巾"], sentence: "Cuci tangan dengan sabun dan air bersih.", sentenceZh: "用肥皂和清水洗手。" },
+            { word: "Tuala", category: "Kebersihan & Kesihatan", correct: "毛巾", options: ["毛巾", "衣服", "毯子", "帽子"], sentence: "Mengelap badan dengan tuala yang bersih.", sentenceZh: "用干净的毛巾擦身体。" },
+            { word: "Gigi", category: "Kebersihan & Kesihatan", correct: "牙齿", options: ["牙齿", "眼睛", "耳朵", "头发"], sentence: "Menggosok gigi dua kali sehari.", sentenceZh: "一天刷两次牙。" },
+            { word: "Kuman", category: "Kebersihan & Kesihatan", correct: "细菌", options: ["细菌", "昆虫", "灰尘", "病毒"], sentence: "Sabun ini dapat membunuh kuman.", sentenceZh: "这个肥皂能够杀菌。" },
+
+            // 4. Keselamatan
+            { word: "Waspada / Berhati-hati", category: "Keselamatan", correct: "小心 / 警惕", options: ["小心 / 警惕", "马虎", "快速", "害怕"], sentence: "Kita mesti sentiasa waspada di jalan raya.", sentenceZh: "我们在路上必须时刻保持警惕。" },
+            { word: "Lintasan belang", category: "Keselamatan", correct: "斑马线", options: ["斑马线", "天桥", "马路", "小巷"], sentence: "Melintas jalan di lintasan belang.", sentenceZh: "用斑马线过马路。" },
+            { word: "Jejantas", category: "Keselamatan", correct: "行人天桥", options: ["行人天桥", "地下道", "红绿灯", "车道"], sentence: "Menggunakan jejantas untuk melintas jalan.", sentenceZh: "使用行人天桥过马路。" },
+            { word: "Topi keledar", category: "Keselamatan", correct: "头盔 / 安全帽", options: ["头盔 / 安全帽", "鸭舌帽", "手套", "雨衣"], sentence: "Memakai topi keledar semasa menunggang basikal.", sentenceZh: "骑脚踏车时戴头盔。" },
+            { word: "Jaket keselamatan", category: "Keselamatan", correct: "救生衣", options: ["救生衣", "外套", "校服", "雨衣"], sentence: "Memakai jaket keselamatan di atas bot.", sentenceZh: "在船上穿救生衣。" },
+            { word: "Lampu isyarat", category: "Keselamatan", correct: "红绿灯 / 交通灯", options: ["红绿灯 / 交通灯", "路灯", "指示牌", "车灯"], sentence: "Pemandu mesti mematuhi lampu isyarat.", sentenceZh: "司机必须遵守交通灯。" },
+            { word: "Bahaya", category: "Keselamatan", correct: "危险", options: ["危险", "安全", "有趣", "安静"], sentence: "Jauhi kawasan yang bahaya itu.", sentenceZh: "远离那个危险区域。" },
+
+            // 5. Alam Sekitar
+            { word: "Tong kitar semula", category: "Alam Sekitar", correct: "回收箱", options: ["回收箱", "垃圾桶", "宝箱", "快递盒"], sentence: "Membuang sampah ke dalam tong kitar semula.", sentenceZh: "把垃圾丢进回收箱。" },
+            { word: "Pokok", category: "Alam Sekitar", correct: "树木", options: ["树木", "花朵", "小草", "水果"], sentence: "Kami menanam pokok di halaman sekolah.", sentenceZh: "发现在学校庭院种树。" },
+            { word: "Siram", category: "Alam Sekitar", correct: "浇水", options: ["浇水", "施肥", "扫地", "拔草"], sentence: "Mei Ling menyiram pokok bunga.", sentenceZh: "美玲给花树浇水。" },
+            { word: "Baja", category: "Alam Sekitar", correct: "肥料", options: ["肥料", "泥土", "种子", "杀虫剂"], sentence: "Memberi baja supaya pokok tumbuh subur.", sentenceZh: "施肥以便植物长得茂盛。" },
+            { word: "Indah", category: "Alam Sekitar", correct: "优美的 / 美丽的", options: ["优美的 / 美丽的", "丑陋的", "辽阔的", "黑暗的"], sentence: "Pemandangan di taman itu sangat indah.", sentenceZh: "公园里的风景非常优美。" }
+        ];
+
+        let harvestedSet = new Set();
+        let currentQuestionIndex = null;
+
+        // 选择模式（手机 / 电脑）
+        function selectMode(mode) {
+            const container = document.getElementById('game-container');
+            if (mode === 'mobile') {
+                container.className = 'mobile-mode';
+            } else {
+                container.className = 'desktop-mode';
+            }
+            document.getElementById('mode-select').style.display = 'none';
+            initFarm();
+        }
+
+        // 初始化农场网格
+        function initFarm() {
+            const farmGrid = document.getElementById('farm-grid');
+            farmGrid.innerHTML = '';
+            
+            questionsData.forEach((q, index) => {
+                const item = document.createElement('div');
+                item.className = 'pumpkin-item';
+                item.id = `pumpkin-${index}`;
+                item.onclick = () => openQuiz(index);
+                
+                item.innerHTML = `
+                    <div class="pumpkin-img">🎃</div>
+                    <div class="pumpkin-num">${index + 1}</div>
+                `;
+                farmGrid.appendChild(item);
+            });
+            updateScore();
+        }
+
+        // 打开题目弹窗
+        function openQuiz(index) {
+            if (harvestedSet.has(index)) return; // 已经收割过
+
+            currentQuestionIndex = index;
+            const q = questionsData[index];
+
+            document.getElementById('word-title').innerText = q.word;
+            document.getElementById('word-category').innerText = `单元领域：${q.category}`;
+            document.getElementById('feedback-area').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+
+            // 随机打乱选项
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+            
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, q.correct);
+                optionsList.appendChild(btn);
+            });
+
+            document.getElementById('quiz-modal').style.display = 'flex';
+        }
+
+        // 检查答案
+        function checkAnswer(selected, correct) {
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackResult = document.getElementById('feedback-result');
+            const q = questionsData[currentQuestionIndex];
+
+            // 禁用所有选项按钮
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(btn => {
+                btn.disabled = true;
+                if (btn.innerText === correct) {
+                    btn.style.background = '#c8e6c9';
+                    btn.style.borderColor = '#4caf50';
+                } else if (btn.innerText === selected && selected !== correct) {
+                    btn.style.background = '#ffcdd2';
+                    btn.style.borderColor = '#f44336';
+                }
+            });
+
+            feedbackArea.style.display = 'block';
+
+            if (selected === correct) {
+                feedbackArea.className = 'feedback-correct';
+                feedbackResult.innerText = "🎯 回答正确！太棒了！";
+                
+                // 标记为已收割
+                if (!harvestedSet.has(currentQuestionIndex)) {
+                    harvestedSet.add(currentQuestionIndex);
+                    const pumpkinItem = document.getElementById(`pumpkin-${currentQuestionIndex}`);
+                    pumpkinItem.classList.add('harvested');
+                    pumpkinItem.querySelector('.pumpkin-img').innerText = '✅';
+                }
+            } else {
+                feedbackArea.className = 'feedback-wrong';
+                feedbackResult.innerText = `❌ 再想想哦！正确答案是：“${correct}”`;
+            }
+
+            // 展示例句
+            document.getElementById('sentence-ms').innerText = q.sentence;
+            document.getElementById('sentence-zh').innerText = q.sentenceZh;
+
+            document.getElementById('next-btn').style.display = 'block';
+            updateScore();
+        }
+
+        // 关闭弹窗并判断是否全盘完成
+        function closeQuiz() {
+            document.getElementById('quiz-modal').style.display = 'none';
+            
+            if (harvestedSet.size === questionsData.length) {
+                setTimeout(() => {
+                    document.getElementById('result-modal').style.display = 'flex';
+                }, 300);
+            }
+        }
+
+        // 更新得分
+        function updateScore() {
+            document.getElementById('score').innerText = harvestedSet.size;
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            harvestedSet.clear();
+            document.getElementById('result-modal').style.display = 'none';
+            initFarm();
+        }
+    </script>
+</body>
+</html>
